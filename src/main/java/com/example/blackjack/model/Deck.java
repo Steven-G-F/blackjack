@@ -1,23 +1,27 @@
 package com.example.blackjack.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Deck {
 
-    private final List<Object> cards = new ArrayList<>();
+    private final List<Card> cards = new ArrayList<>();
 
     public Deck() {
-        for (int i = 0; i < 52; i++) {
-            cards.add(new Object());
+        for (Suit suit : Suit.values()) {
+            for (Rank rank : Rank.values()) {
+                cards.add(new Card(rank, suit));
+            }
         }
+        Collections.shuffle(cards);
     }
 
     public int size() {
         return cards.size();
     }
 
-    public void deal() {
-        cards.remove(cards.size() - 1);
+    public Card deal() {
+        return cards.remove(cards.size() - 1);
     }
 }
