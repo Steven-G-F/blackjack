@@ -20,85 +20,113 @@ public class BlackjackGame {
         this.io = io;
     }
 
+    // TODO Break out some of this logic to helper functions/services
     public void play() {
+
         Deck deck = new Deck();
-
-        Hand playerHand = new Hand();
-        Hand dealerHand = new Hand();
-
         PlayerRules playerRules = new PlayerRules();
         DealerRules dealerRules = new DealerRules();
 
-        // initial deal
-        playerHand.add(deck.deal());
-        playerHand.add(deck.deal());
-
-        dealerHand.add(deck.deal());
-        dealerHand.add(deck.deal());
+        int stack = 100;
 
         io.println("Welcome to Blackjack!");
         io.println("");
 
-        // PLAYER TURN
-        while (true) {
-            io.println("Your hand: " + playerHand.getHand()
-                    + " (score: " + playerRules.score(playerHand) + ")");
-            io.println("Dealer shows: " + dealerHand.getHand().get(0));
-            io.println("(H)it or (S)tand?");
+        while (stack > 0) {
 
-            String input = io.readLine().trim().toUpperCase();
+            io.println("==================================");
+            io.println("Your stack: " + stack);
 
-            if (input.equals("H")) {
-                playerHand.add(deck.deal());
+            Hand playerHand = new Hand();
+            Hand dealerHand = new Hand();
 
-                if (playerRules.isBusted(playerHand)) {
-                    io.println("You busted!");
-                    return;
-                }
-            } else if (input.equals("S")) {
-                break;
-            } else {
-                io.println("Invalid input. Please enter H or S.");
-            }
-        }
-
-        // DEALER TURN
-        io.println("");
-        io.println("Dealer's turn...");
-        io.println("Dealer hand: " + dealerHand.getHand()
-                + " (score: " + dealerRules.score(dealerHand) + ")");
-
-        while (dealerRules.shouldHit(dealerHand)) {
-            io.println("Dealer hits.");
+            // Initial deal
+            playerHand.add(deck.deal());
+            playerHand.add(deck.deal());
             dealerHand.add(deck.deal());
+            dealerHand.add(deck.deal());
+
+            // PLAYER TURN
+            while (true) {
+
+                io.println("Your hand: " + playerHand.getHand()
+                        + " (score: " + playerRules.score(playerHand) + ")");
+                io.println("Dealer shows: " + dealerHand.getHand().get(0));
+                io.println("(H)it or (S)tand?");
+
+                String input = io.readLine().trim().toUpperCase();
+
+                if (input.equals("H")) {
+                    playerHand.add(deck.deal());
+
+                    if (playerRules.isBusted(playerHand)) {
+                        io.println("You busted! Dealer wins.");
+                        stack--;
+                        break;
+                    }
+
+                } else if (input.equals("S")) {
+                    break;
+                } else {
+                    io.println("Invalid input.");
+                }
+            }
+
+            // If player busted, skip dealer + showdown
+            if (playerRules.isBusted(playerHand)) {
+                deck.addToDiscard(playerHand.getHand());
+                deck.addToDiscard(dealerHand.getHand());
+                continue;
+            }
+
+            // DEALER TURN
+            io.println("");
+            io.println("Dealer's turn...");
             io.println("Dealer hand: " + dealerHand.getHand()
                     + " (score: " + dealerRules.score(dealerHand) + ")");
-        }
 
-        if (dealerRules.isBusted(dealerHand)) {
-            io.println("Dealer busted! You win!");
-            return;
-        }
+            while (dealerRules.shouldHit(dealerHand)) {
+                io.println("Dealer hits.");
+                dealerHand.add(deck.deal());
+                io.println("Dealer hand: " + dealerHand.getHand()
+                        + " (score: " + dealerRules.score(dealerHand) + ")");
+            }
 
-        int playerScore = playerRules.score(playerHand);
-        int dealerScore = dealerRules.score(dealerHand);
+            // Dealer bust
+            if (dealerRules.isBusted(dealerHand)) {
+                io.println("Dealer busted! You win!");
+                stack++;
+            } else {
+                // SHOWDOWN
+                int playerScore = playerRules.score(playerHand);
+                int dealerScore = dealerRules.score(dealerHand);
+
+                io.println("");
+                io.println("Final hands:");
+                io.println("Your hand: " + playerHand.getHand()
+                        + " (score: " + playerScore + ")");
+                io.println("Dealer hand: " + dealerHand.getHand()
+                        + " (score: " + dealerScore + ")");
+
+                if (playerScore > dealerScore) {
+                    stack++;
+                    io.println("You win!");
+                } else if (playerScore < dealerScore) {
+                    stack--;
+                    io.println("Dealer wins!");
+                } else {
+                    io.println("Push (tie).");
+                }
+            }
+
+            // Discard round cards
+            deck.addToDiscard(playerHand.getHand());
+            deck.addToDiscard(dealerHand.getHand());
+        }
 
         io.println("");
-        io.println("Final hands:");
-        io.println("Your hand: " + playerHand.getHand()
-                + " (score: " + playerScore + ")");
-        io.println("Dealer hand: " + dealerHand.getHand()
-                + " (score: " + dealerScore + ")");
-
-        if (playerScore > dealerScore) {
-            io.println("You win!");
-        } else if (playerScore < dealerScore) {
-            io.println("Dealer wins!");
-        } else {
-            io.println("Push (tie).");
-        }
-
-
+        io.println("Game over. You are out of chips.");
     }
+
 
 }

@@ -6,22 +6,32 @@ import java.util.List;
 
 public class Deck {
 
-    private final List<Card> cards = new ArrayList<>();
+    private final List<Card> deckCards = new ArrayList<>();
+    private final List<Card> discardPile = new ArrayList<>();
 
     public Deck() {
         for (Suit suit : Suit.values()) {
             for (Rank rank : Rank.values()) {
-                cards.add(new Card(rank, suit));
+                deckCards.add(new Card(rank, suit));
             }
         }
-        Collections.shuffle(cards);
+        Collections.shuffle(deckCards);
     }
 
     public int size() {
-        return cards.size();
+        return deckCards.size();
     }
 
     public Card deal() {
-        return cards.remove(cards.size() - 1);
+        if (deckCards.size() == 0){
+            Collections.shuffle(discardPile);
+            deckCards.addAll(discardPile);
+            discardPile.clear();
+        }
+        return deckCards.remove(deckCards.size() - 1);
+    }
+
+    public void addToDiscard(List<Card> discardedCards){
+        discardPile.addAll(discardedCards);
     }
 }
